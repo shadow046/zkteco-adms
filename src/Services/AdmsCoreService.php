@@ -465,19 +465,39 @@ class AdmsCoreService
 
     private function logHttpRequest(Request $request, ?string $serialNumber, ?string $table, string $content): void
     {
-        DB::table($this->table('http_logs'))->insert([
-            'endpoint' => trim($request->path(), '/'),
-            'method' => $request->method(),
-            'serial_number' => $this->nullableString($serialNumber),
-            'table_name' => $this->nullableString($table),
-            'query_string' => $request->getQueryString(),
-            'content_type' => $request->header('Content-Type'),
-            'body_preview' => Str::limit($content, 2000, ''),
-            'body_size' => strlen($content),
-            'client_ip' => $request->ip(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        try {
+            DB::table($this->table('http_logs'))->insert([
+                'endpoint' => trim($request->path(), '/'),
+                'method' => $request->method(),
+                'serial_number' => $this->nullableString($serialNumber),
+                'table_name' => $this->nullableString($table),
+                'query_string' => $request->getQueryString(),
+                'content_type' => $request->header('Content-Type'),
+                'body_preview' => $this->bodyPreview($content, (string) $table),
+                'body_size' => strlen($content),
+                'client_ip' => $request->ip(),
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        } catch (\Throwable) {
+            // HTTP logging should never block the device ingest flow.
+        }
+    }
+
+    private function bodyPreview(string $content, string $table): string
+    {
+        $upperTable = Str::upper(trim($table));
+
+        if ($upperTable === 'ATTPHOTO') {
+            $jpegOffset = strpos($content, "\xFF\xD8");
+            $header = $jpegOffset === false ? $content : substr($content, 0, $jpegOffset);
+
+            return trim($header)."\n[BINARY_JPEG_OMITTED]";
+        }
+
+        $sanitized = preg_replace('/[^\P{C}\t\n\r]/u', '', $content) ?? $content;
+
+        return mb_substr($sanitized, 0, 4000);
     }
 
     private function getOrCreateDeviceState(string $serialNumber): object
