@@ -18,7 +18,7 @@ php artisan migrate:adms
 
 `migrate:adms` is safe for existing legacy databases. It skips already-existing ADMS tables and syncs missing ADMS columns into existing `inout_raw` and `dtr` tables when needed.
 
-The install command also publishes the optional Python helper scripts into the host project at `scripts/zkteco-adms` so the common direct-device setup does not need a custom scripts path.
+The install command also publishes the optional Python helper scripts and bundled `zk` library into the host project at `scripts/zkteco-adms` so the common direct-device setup does not need a custom scripts path.
 
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
 
@@ -36,7 +36,7 @@ Useful options:
 - `ZKTECO_ADMS_PHOTO_DIRECTORY=adms_photos`
 - `ZKTECO_ADMS_PYTHON_ENABLED=false`
 - `ZKTECO_ADMS_PYTHON_BIN=python3`
-- `ZKTECO_ADMS_PYZK_ROOT=/path/to/pyzk/root`
+- `ZKTECO_ADMS_PYZK_ROOT=scripts/zkteco-adms`
 - `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH=scripts/zkteco-adms`
 
 ## Included Components
@@ -94,7 +94,7 @@ Enable it with:
 ```env
 ZKTECO_ADMS_PYTHON_ENABLED=true
 ZKTECO_ADMS_PYTHON_BIN=python3
-ZKTECO_ADMS_PYZK_ROOT=/path/to/your/pyzk/root
+ZKTECO_ADMS_PYZK_ROOT=scripts/zkteco-adms
 ```
 
-By default, `php artisan zkteco-adms:install` publishes the packaged scripts into `scripts/zkteco-adms` in the host project. Use `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH` only if you want to override that default location with a custom script directory.
+By default, `php artisan zkteco-adms:install` publishes the packaged scripts and bundled `zk` library into `scripts/zkteco-adms` in the host project. Use `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH` only if you want to override that default location with a custom script directory.

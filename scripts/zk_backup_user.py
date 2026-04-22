@@ -9,7 +9,7 @@ import traceback
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 PYZK_ROOT = os.environ.get(
     "ZK_PYZK_ROOT",
-    os.path.abspath(os.path.join(PROJECT_ROOT, "..")),
+    PROJECT_ROOT,
 )
 
 if PYZK_ROOT not in sys.path:

@@ -31,7 +31,7 @@ return [
         'enabled' => env('ZKTECO_ADMS_PYTHON_ENABLED', false),
         'bin' => env('ZKTECO_ADMS_PYTHON_BIN', 'python3'),
         'timeout' => env('ZKTECO_ADMS_PYTHON_TIMEOUT', 180),
-        'pyzk_root' => env('ZKTECO_ADMS_PYZK_ROOT', ''),
+        'pyzk_root' => env('ZKTECO_ADMS_PYZK_ROOT', base_path('scripts/zkteco-adms')),
         'scripts_path' => env('ZKTECO_ADMS_PYTHON_SCRIPTS_PATH', base_path('scripts/zkteco-adms')),
         'backup_disk' => env('ZKTECO_ADMS_PYTHON_BACKUP_DISK', 'local'),
         'backup_directory' => env('ZKTECO_ADMS_PYTHON_BACKUP_DIRECTORY', 'zkteco_adms_backups'),

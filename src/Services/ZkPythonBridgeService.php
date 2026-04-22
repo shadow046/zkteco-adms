@@ -270,7 +270,7 @@ class ZkPythonBridgeService
     {
         $configured = trim((string) config('zkteco-adms.python.pyzk_root', ''));
 
-        return $configured !== '' ? $configured : $this->packageRoot();
+        return $configured !== '' ? $configured : $this->scriptsPath();
     }
 
     private function backupDisk(): string

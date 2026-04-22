@@ -21,12 +21,12 @@ class InstallCommand extends Command
         $this->line('1. Review config/zkteco-adms.php');
         $this->line('2. Run php artisan migrate:adms');
         $this->line('   This is legacy-safe for existing inout_raw/dtr and existing ADMS tables.');
-        $this->line('3. Python helper scripts were published to scripts/zkteco-adms.');
+        $this->line('3. Python helper scripts and the bundled zk library were published to scripts/zkteco-adms.');
         $this->line('4. Make sure storage is writable so ATTPHOTO files can be saved.');
         $this->line('5. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
         $this->line('6. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
         $this->line('7. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
-        $this->line('8. If your host project does not already contain the pyzk library, set ZKTECO_ADMS_PYZK_ROOT to a valid pyzk root path.');
+        $this->line('8. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
 
         return self::SUCCESS;
     }
