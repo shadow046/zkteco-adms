@@ -34,6 +34,10 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
             __DIR__.'/../database/migrations' => database_path('migrations'),
         ], 'zkteco-adms-migrations');
 
+        $this->publishes([
+            __DIR__.'/../scripts' => base_path('scripts/zkteco-adms'),
+        ], 'zkteco-adms-scripts');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,

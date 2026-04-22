@@ -14,16 +14,19 @@ class InstallCommand extends Command
     {
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-config']);
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-migrations']);
+        $this->call('vendor:publish', ['--tag' => 'zkteco-adms-scripts']);
 
         $this->components->info('shadow046/zkteco-adms assets published.');
         $this->line('Next steps:');
         $this->line('1. Review config/zkteco-adms.php');
         $this->line('2. Run php artisan migrate:adms');
         $this->line('   This is legacy-safe for existing inout_raw/dtr and existing ADMS tables.');
-        $this->line('3. Make sure storage is writable so ATTPHOTO files can be saved.');
-        $this->line('4. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
-        $this->line('5. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
-        $this->line('6. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
+        $this->line('3. Python helper scripts were published to scripts/zkteco-adms.');
+        $this->line('4. Make sure storage is writable so ATTPHOTO files can be saved.');
+        $this->line('5. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
+        $this->line('6. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
+        $this->line('7. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
+        $this->line('8. If your host project does not already contain the pyzk library, set ZKTECO_ADMS_PYZK_ROOT to a valid pyzk root path.');
 
         return self::SUCCESS;
     }
