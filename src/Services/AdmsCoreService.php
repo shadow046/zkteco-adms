@@ -19,13 +19,30 @@ class AdmsCoreService
     public function handleCdata(Request $request): Response
     {
         $serialNumber = trim((string) $request->query('SN', ''));
+        $options = trim((string) $request->query('options', ''));
         $table = Str::upper(trim((string) $request->query('table', '')));
         $stamp = trim((string) $request->query('Stamp', ''));
         $content = (string) $request->getContent();
 
         $this->logHttpRequest($request, $serialNumber, $table, $content);
+        $this->touchDeviceStateFromRequest($request);
 
-        if ($serialNumber === '' || $table === '') {
+        if ($serialNumber === '') {
+            return response('ERROR', 400);
+        }
+
+        if ($options === 'all') {
+            return response(
+                $this->buildCdataOptionsResponse(
+                    $serialNumber,
+                    trim((string) $request->query('pushver', ''))
+                ),
+                200,
+                ['Content-Type' => 'text/plain']
+            );
+        }
+
+        if ($table === '') {
             return response('ERROR', 400);
         }
 
@@ -49,6 +66,7 @@ class AdmsCoreService
         $content = (string) $request->getContent();
 
         $this->logHttpRequest($request, $serialNumber, $table, $content);
+        $this->touchDeviceStateFromRequest($request);
 
         if ($serialNumber !== '' && $table === 'ATTPHOTO') {
             $this->storeAttendancePhoto($serialNumber, $stamp, $content, $request);
@@ -111,6 +129,7 @@ class AdmsCoreService
         $content = (string) $request->getContent();
 
         $this->logHttpRequest($request, $serialNumber, 'DEVICECMD', $content);
+        $this->touchDeviceStateFromRequest($request);
 
         if ($serialNumber !== '') {
             $this->updateDeviceState($serialNumber, [
@@ -119,6 +138,79 @@ class AdmsCoreService
         }
 
         return response('OK');
+    }
+
+    private function buildCdataOptionsResponse(string $serialNumber, string $pushver): string
+    {
+        $state = $this->getOrCreateDeviceState($serialNumber);
+
+        $lines = [
+            "GET OPTION FROM: {$serialNumber}",
+            'Stamp=0',
+            'OPStamp=0',
+            'PhotoStamp=0',
+            'ErrorDelay=60',
+            'Delay=30',
+            'TransTimes=00:00;23:59',
+            'TransInterval=1',
+            'TransFlag=1111000000',
+            'Realtime=1',
+            'Encrypt=0',
+        ];
+
+        if ($pushver !== '2.32') {
+            $lines[] = 'TimeZone=+08:00';
+            $lines[] = 'Timeout=60';
+        }
+
+        $lines[] = 'SyncTime=3600';
+        $lines[] = $pushver === '2.32'
+            ? 'ServerVer=3.4.1 20100607'
+            : 'ServerVer=3.4.1 2010-06-07';
+
+        if ($pushver === '2.32') {
+            $lines[] = 'ATTLOGStamp='.(string) ($state->attlogstamp ?? '0');
+            $lines[] = 'OPERLOGStamp='.(string) ($state->oplogstamp ?? '0');
+            $lines[] = 'ATTPHOTOStamp='.(string) ($state->attphotostamp ?? '0');
+
+            return implode("\n", $lines)."\n";
+        }
+
+        $lines[] = 'ATTLOGStamp='.$this->formatDeviceStampValue(
+            $state->lasttxndatetime ?? null,
+            $state->attlogdate ?? null
+        );
+        $lines[] = 'OPERLOGStamp='.$this->formatDeviceStampValue(
+            $state->lasttxndatetime ?? null,
+            $state->oplogdate ?? null
+        );
+        $lines[] = 'ATTPHOTOStamp='.$this->formatDeviceStampValue(
+            $state->lasttxndatetime ?? null,
+            $state->attphotodate ?? null
+        );
+
+        return implode("\n", $lines)."\n";
+    }
+
+    private function formatDeviceStampValue(?string $lastTxnDatetime, ?string $dateField): string
+    {
+        if (! empty($dateField)) {
+            try {
+                return Carbon::parse($dateField, config('app.display_timezone', 'Asia/Manila'))
+                    ->format('Y-m-d\TH:i:s');
+            } catch (\Throwable) {
+            }
+        }
+
+        if (! empty($lastTxnDatetime)) {
+            try {
+                return Carbon::parse($lastTxnDatetime, config('app.display_timezone', 'Asia/Manila'))
+                    ->format('Y-m-d\TH:i:s');
+            } catch (\Throwable) {
+            }
+        }
+
+        return '2020-09-01T00:00:01';
     }
 
     private function storeAttendanceLogs(string $serialNumber, string $stamp, string $content, Request $request): void
@@ -404,6 +496,37 @@ class AdmsCoreService
         ]);
 
         return DB::table($table)->where('serial_number', $serialNumber)->first();
+    }
+
+    private function touchDeviceStateFromRequest(Request $request): void
+    {
+        $serialNumber = trim((string) $request->query('SN', ''));
+
+        if ($serialNumber === '') {
+            return;
+        }
+
+        $state = $this->getOrCreateDeviceState($serialNumber);
+        $updates = [
+            'options' => trim((string) $request->query('options', $state->options ?? '')),
+            'pushver' => trim((string) $request->query('pushver', $state->pushver ?? '')),
+            'language' => trim((string) $request->query('language', $state->language ?? '')),
+        ];
+
+        $table = Str::upper(trim((string) $request->query('table', '')));
+        $stamp = trim((string) $request->query('Stamp', ''));
+
+        if ($stamp !== '') {
+            if ($table === 'ATTLOG') {
+                $updates['attlogstamp'] = $stamp;
+            } elseif ($table === 'OPERLOG') {
+                $updates['oplogstamp'] = $stamp;
+            } elseif ($table === 'ATTPHOTO') {
+                $updates['attphotostamp'] = $stamp;
+            }
+        }
+
+        $this->updateDeviceState($serialNumber, $updates);
     }
 
     private function updateDeviceState(string $serialNumber, array $attributes): void
