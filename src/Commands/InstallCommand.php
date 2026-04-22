@@ -19,6 +19,7 @@ class InstallCommand extends Command
         $this->line('Next steps:');
         $this->line('1. Review config/zkteco-adms.php');
         $this->line('2. Run php artisan migrate:adms');
+        $this->line('   This is legacy-safe for existing inout_raw/dtr and existing ADMS tables.');
         $this->line('3. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
         $this->line('4. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
 

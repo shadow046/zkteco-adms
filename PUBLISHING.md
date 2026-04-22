@@ -47,3 +47,5 @@ composer require shadow046/zkteco-adms
 php artisan zkteco-adms:install
 php artisan migrate:adms
 ```
+
+For legacy databases, `migrate:adms` now skips tables that already exist and adds the missing ADMS support columns required on existing `inout_raw` and `dtr` tables.
