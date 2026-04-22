@@ -19,6 +19,7 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/commands.php');
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         Event::listen(AttendanceLogsStored::class, RunDtrPairingListener::class);

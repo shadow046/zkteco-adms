@@ -25,6 +25,7 @@ Published config file: `config/zkteco-adms.php`
 
 Useful options:
 - `ZKTECO_ADMS_ROUTE_PREFIX=iclock`
+- `ZKTECO_ADMS_COMMAND_ROUTE_PREFIX=zkteco-adms/commands`
 - `ZKTECO_ADMS_ATTENDANCE_TABLE=inout_raw`
 - `ZKTECO_ADMS_DTR_TABLE=dtr`
 - `ZKTECO_ADMS_DTR_PAIRING_ENABLED=true`
@@ -39,6 +40,7 @@ Useful options:
 - attendance photo storage and linking
 - USERINFO and FINGERTMP mirrors
 - command queue and device state tracking
+- reusable command queue endpoints for ATTLOG, FINGERTMP, USERINFO, and FINGERTMP update
 - built-in `DtrPairingService`
 - automatic DTR pairing listener
 - publishable config and migrations
@@ -49,3 +51,11 @@ Useful options:
 - The pairing logic handles punch `1/2/3/4`, chronology checks, next-day carry-over, and manual `*` protection.
 - Routes are package-owned; the host app only needs to point the ZKTeco device to the configured prefix.
 - This package directory is ready to be copied into its own standalone Git repository.
+
+## Command Queue Endpoints
+- `POST /zkteco-adms/commands/attlog-query`
+- `POST /zkteco-adms/commands/fingertmp-query`
+- `POST /zkteco-adms/commands/user-update`
+- `POST /zkteco-adms/commands/fingertmp-update`
+
+All endpoints return JSON and insert rows into the configured `device_commands` table.

@@ -4,6 +4,8 @@ return [
     'enabled' => env('ZKTECO_ADMS_ENABLED', true),
     'route_prefix' => env('ZKTECO_ADMS_ROUTE_PREFIX', 'iclock'),
     'middleware' => [],
+    'command_route_prefix' => env('ZKTECO_ADMS_COMMAND_ROUTE_PREFIX', 'zkteco-adms/commands'),
+    'command_middleware' => [],
 
     'attendance_table' => env('ZKTECO_ADMS_ATTENDANCE_TABLE', 'inout_raw'),
     'dtr_table' => env('ZKTECO_ADMS_DTR_TABLE', 'dtr'),
