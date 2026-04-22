@@ -3,3 +3,6 @@
 /.idea
 /.vscode
 composer.lock
+
+/scripts/zk/__pycache__/
+*.pyc
