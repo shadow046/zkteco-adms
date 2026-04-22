@@ -6,6 +6,8 @@ return [
     'middleware' => [],
     'command_route_prefix' => env('ZKTECO_ADMS_COMMAND_ROUTE_PREFIX', 'zkteco-adms/commands'),
     'command_middleware' => [],
+    'ui_route_prefix' => env('ZKTECO_ADMS_UI_ROUTE_PREFIX', 'shadow046/adms'),
+    'ui_middleware' => ['web'],
 
     'attendance_table' => env('ZKTECO_ADMS_ATTENDANCE_TABLE', 'inout_raw'),
     'dtr_table' => env('ZKTECO_ADMS_DTR_TABLE', 'dtr'),

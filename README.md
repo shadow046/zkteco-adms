@@ -26,6 +26,7 @@ Published config file: `config/zkteco-adms.php`
 Useful options:
 - `ZKTECO_ADMS_ROUTE_PREFIX=iclock`
 - `ZKTECO_ADMS_COMMAND_ROUTE_PREFIX=zkteco-adms/commands`
+- `ZKTECO_ADMS_UI_ROUTE_PREFIX=shadow046/adms`
 - `ZKTECO_ADMS_ATTENDANCE_TABLE=inout_raw`
 - `ZKTECO_ADMS_DTR_TABLE=dtr`
 - `ZKTECO_ADMS_DTR_PAIRING_ENABLED=true`
@@ -36,6 +37,7 @@ Useful options:
 - package service provider
 - install command
 - `/iclock` ADMS routes
+- package-owned test frontend for dashboard, attendance, and daily logs
 - ADMS core ingest service
 - attendance photo storage and linking
 - USERINFO and FINGERTMP mirrors
@@ -59,3 +61,10 @@ Useful options:
 - `POST /zkteco-adms/commands/fingertmp-update`
 
 All endpoints return JSON and insert rows into the configured `device_commands` table.
+
+## Built-in Test UI
+- `GET /shadow046/adms/dashboard`
+- `GET /shadow046/adms/attendance`
+- `GET /shadow046/adms/daily-logs`
+
+This frontend is package-owned and meant as a ready-to-use testing surface for host apps.
