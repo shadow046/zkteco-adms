@@ -5,6 +5,7 @@ namespace Shadow046\ZktecoAdms;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Shadow046\ZktecoAdms\Commands\InstallCommand;
+use Shadow046\ZktecoAdms\Commands\MigrateAdmsCommand;
 use Shadow046\ZktecoAdms\Events\AttendanceLogsStored;
 use Shadow046\ZktecoAdms\Listeners\RunDtrPairingListener;
 
@@ -33,6 +34,7 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
+                MigrateAdmsCommand::class,
             ]);
         }
     }

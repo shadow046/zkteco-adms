@@ -45,5 +45,5 @@ git push origin v0.1.0
 ```bash
 composer require shadow046/zkteco-adms
 php artisan zkteco-adms:install
-php artisan migrate
+php artisan migrate:adms
 ```

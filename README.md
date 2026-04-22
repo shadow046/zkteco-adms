@@ -13,7 +13,7 @@ Reusable ZKTeco ADMS server package for Laravel applications.
 ```bash
 composer require shadow046/zkteco-adms
 php artisan zkteco-adms:install
-php artisan migrate
+php artisan migrate:adms
 ```
 
 ## Config
