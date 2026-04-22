@@ -32,6 +32,10 @@ Useful options:
 - `ZKTECO_ADMS_DTR_PAIRING_ENABLED=true`
 - `ZKTECO_ADMS_PHOTO_DISK=local`
 - `ZKTECO_ADMS_PHOTO_DIRECTORY=adms_photos`
+- `ZKTECO_ADMS_PYTHON_ENABLED=false`
+- `ZKTECO_ADMS_PYTHON_BIN=python3`
+- `ZKTECO_ADMS_PYZK_ROOT=/path/to/pyzk/root`
+- `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH=/optional/custom/scripts/path`
 
 ## Included Components
 - package service provider
@@ -39,6 +43,7 @@ Useful options:
 - `/iclock` ADMS routes
 - package-owned test frontend for dashboard, attendance, and daily logs
 - ADMS core ingest service
+- optional Python bridge service and packaged helper scripts
 - attendance photo storage and linking
 - USERINFO and FINGERTMP mirrors
 - command queue and device state tracking
@@ -68,3 +73,26 @@ All endpoints return JSON and insert rows into the configured `device_commands` 
 - `GET /shadow046/adms/daily-logs`
 
 This frontend is package-owned and meant as a ready-to-use testing surface for host apps.
+
+## Optional Python Bridge
+The package now includes the direct-device helper scripts under `scripts/` and a reusable PHP wrapper service:
+
+- `Shadow046\ZktecoAdms\Services\ZkPythonBridgeService`
+
+Included scripts:
+- `zk_backup.py`
+- `zk_backup_user.py`
+- `zk_restore.py`
+- `zk_delete_user.py`
+- `zk_enroll_user.py`
+- `zk_query_logs.py`
+
+Enable it with:
+
+```env
+ZKTECO_ADMS_PYTHON_ENABLED=true
+ZKTECO_ADMS_PYTHON_BIN=python3
+ZKTECO_ADMS_PYZK_ROOT=/path/to/your/pyzk/root
+```
+
+Use `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH` only if you want to override the packaged scripts with custom ones.

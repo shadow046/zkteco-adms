@@ -23,6 +23,7 @@ class InstallCommand extends Command
         $this->line('3. Make sure storage is writable so ATTPHOTO files can be saved.');
         $this->line('4. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
         $this->line('5. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
+        $this->line('6. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
 
         return self::SUCCESS;
     }

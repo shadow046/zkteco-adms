@@ -1,0 +1,110 @@
+#!/usr/bin/env python3
+import argparse
+import json
+import os
+import sys
+import traceback
+
+
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+PYZK_ROOT = os.environ.get(
+    "ZK_PYZK_ROOT",
+    os.path.abspath(os.path.join(PROJECT_ROOT, "..")),
+)
+
+if PYZK_ROOT not in sys.path:
+    sys.path.insert(0, PYZK_ROOT)
+
+from zk import ZK  # noqa: E402
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Single-user ZKTeco template backup bridge")
+    parser.add_argument("--ip", required=True, help="Device IP address")
+    parser.add_argument("--port", type=int, default=4370, help="Device port")
+    parser.add_argument("--password", type=int, default=0, help="Communication password")
+    parser.add_argument("--timeout", type=int, default=15, help="Socket timeout in seconds")
+    parser.add_argument("--user-id", required=True, help="Device user_id / PIN")
+    parser.add_argument("--force-udp", action="store_true", help="Force UDP transport")
+    return parser.parse_args()
+
+
+def normalize_identifier(value):
+    return str(value or "").strip()
+
+
+def main():
+    args = parse_args()
+    conn = None
+
+    try:
+        zk = ZK(
+            args.ip,
+            port=args.port,
+            timeout=args.timeout,
+            password=args.password,
+            force_udp=args.force_udp,
+            ommit_ping=False,
+        )
+        conn = zk.connect()
+        conn.disable_device()
+
+        target_user_id = normalize_identifier(args.user_id)
+        users = conn.get_users() or []
+
+        matched = next(
+            (user for user in users if normalize_identifier(getattr(user, "user_id", "")) == target_user_id),
+            None,
+        )
+
+        if matched is None and target_user_id.isdigit():
+            target_uid = int(target_user_id)
+            matched = next(
+                (user for user in users if int(getattr(user, "uid", 0)) == target_uid),
+                None,
+            )
+
+        if matched is None:
+            raise RuntimeError(f"User ID/PIN {target_user_id} not found on device.")
+
+        templates = []
+        for fid in range(10):
+            template = conn.get_user_template(uid=int(matched.uid), temp_id=fid)
+            if template is not None:
+                templates.append(template)
+
+        print(
+            json.dumps(
+                {
+                    "status": "ok",
+                    "ip": args.ip,
+                    "port": args.port,
+                    "serial": conn.get_serialnumber(),
+                    "fp_version": conn.get_fp_version(),
+                    "user_id": normalize_identifier(getattr(matched, "user_id", "")) or target_user_id,
+                    "users": [matched.__dict__],
+                    "templates": [template.json_pack() for template in templates],
+                },
+                ensure_ascii=True,
+            )
+        )
+    except Exception as exc:  # pragma: no cover - runtime bridge
+        message = str(exc).strip() or exc.__class__.__name__
+        sys.stderr.write(message + "\n")
+        if os.environ.get("ZK_BACKUP_DEBUG") == "1":
+            traceback.print_exc(file=sys.stderr)
+        sys.exit(1)
+    finally:
+        if conn is not None:
+            try:
+                conn.enable_device()
+            except Exception:
+                pass
+            try:
+                conn.disconnect()
+            except Exception:
+                pass
+
+
+if __name__ == "__main__":
+    main()
