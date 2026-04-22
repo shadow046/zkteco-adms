@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -299,7 +300,15 @@ class AdmsCoreService
             'lasttxndatetime' => $latestTxn?->format('Y-m-d H:i:s') ?? ($state->lasttxndatetime ?? ''),
         ]);
 
-        Event::dispatch(new AttendanceLogsStored($serialNumber, $rows));
+        try {
+            Event::dispatch(new AttendanceLogsStored($serialNumber, $rows));
+        } catch (\Throwable $exception) {
+            Log::error('ZKTeco ADMS attendance pairing failed after raw log ingest.', [
+                'serial_number' => $serialNumber,
+                'row_count' => count($rows),
+                'message' => $exception->getMessage(),
+            ]);
+        }
     }
 
     private function storeOperationLogs(string $serialNumber, string $stamp, string $content, Request $request): void
