@@ -1,0 +1,49 @@
+{
+  "name": "shadow046/zkteco-adms",
+  "description": "Reusable ZKTeco ADMS server package for Laravel applications.",
+  "type": "library",
+  "license": "MIT",
+  "keywords": [
+    "laravel",
+    "zkteco",
+    "adms",
+    "attendance",
+    "dtr"
+  ],
+  "require": {
+    "php": "^8.2",
+    "illuminate/contracts": "^11.0|^12.0",
+    "illuminate/database": "^11.0|^12.0",
+    "illuminate/filesystem": "^11.0|^12.0",
+    "illuminate/http": "^11.0|^12.0",
+    "illuminate/routing": "^11.0|^12.0",
+    "illuminate/support": "^11.0|^12.0",
+    "nesbot/carbon": "^2.72|^3.0"
+  },
+  "require-dev": {
+    "orchestra/testbench": "^9.0|^10.0",
+    "phpunit/phpunit": "^10.5|^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Shadow046\\ZktecoAdms\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Shadow046\\ZktecoAdms\\Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "test": "phpunit"
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Shadow046\\ZktecoAdms\\ZktecoAdmsServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "stable",
+  "prefer-stable": true
+}
