@@ -93,6 +93,11 @@ class DtrPairingService
         }
 
         if ($upserts !== []) {
+            $upserts = array_map(
+                fn (array $state): array => $this->normalizeStateForPersistence($state),
+                $upserts
+            );
+
             DB::table($dtrTable)->upsert(
                 $upserts,
                 ['empno', 'txndate'],
@@ -278,7 +283,7 @@ class DtrPairingService
         $merged['remarks'] = (string) ($existingState['remarks'] ?? '');
         $merged['updated_at'] = $now;
         $merged['created_at'] = $existingState['created_at'] ?? $now;
-        return $merged;
+        return $this->normalizeStateForPersistence($merged);
     }
 
     private function dtrHasDayActivity(array $state): bool
@@ -326,7 +331,30 @@ class DtrPairingService
             }
         }
 
-        return ['updated' => $updated, 'previous_state' => $previousState, 'consumed_timestamps' => $consumed, 'out_linked_count' => $outLinkedCount];
+        return [
+            'updated' => $updated,
+            'previous_state' => $this->normalizeStateForPersistence($previousState),
+            'consumed_timestamps' => $consumed,
+            'out_linked_count' => $outLinkedCount,
+        ];
+    }
+
+    private function normalizeStateForPersistence(array $state): array
+    {
+        $state['txn_remarks'] = $this->truncateString((string) ($state['txn_remarks'] ?? ''), 100);
+        $state['txn_remarks1'] = $this->truncateString((string) ($state['txn_remarks1'] ?? ''), 100);
+        $state['remarks'] = $this->truncateString((string) ($state['remarks'] ?? ''), 100);
+
+        return $state;
+    }
+
+    private function truncateString(string $value, int $maxLength): string
+    {
+        if ($value === '' || mb_strlen($value) <= $maxLength) {
+            return $value;
+        }
+
+        return mb_substr($value, 0, $maxLength);
     }
 
     private function currentDayOwnsPunches(array $currentState, array $currentBuckets): bool
