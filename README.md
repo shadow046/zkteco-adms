@@ -18,6 +18,8 @@ php artisan migrate:adms
 
 `migrate:adms` is safe for existing legacy databases. It skips already-existing ADMS tables and syncs missing ADMS columns into existing `inout_raw` and `dtr` tables when needed.
 
+Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
+
 ## Config
 Published config file: `config/zkteco-adms.php`
 
