@@ -2,6 +2,7 @@
 
 namespace Shadow046\ZktecoAdms\Commands;
 
+use Composer\InstalledVersions;
 use Illuminate\Console\Command;
 
 class InstallCommand extends Command
@@ -17,6 +18,7 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-scripts']);
 
         $this->components->info('shadow046/zkteco-adms assets published.');
+        $this->line('Package version: '.$this->packageVersion());
         $this->line('Next steps:');
         $this->line('1. Review config/zkteco-adms.php');
         $this->line('2. Run php artisan migrate:adms');
@@ -29,5 +31,18 @@ class InstallCommand extends Command
         $this->line('8. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
 
         return self::SUCCESS;
+    }
+
+    private function packageVersion(): string
+    {
+        if (class_exists(InstalledVersions::class)) {
+            $version = InstalledVersions::getPrettyVersion('shadow046/zkteco-adms');
+
+            if (is_string($version) && trim($version) !== '') {
+                return trim($version);
+            }
+        }
+
+        return 'dev-main';
     }
 }
