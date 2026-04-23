@@ -245,13 +245,6 @@ class AdmsCoreService
             $txndate = $timestamp->toDateString();
             $txntime = $timestamp->format('H:i:s');
 
-            $existing = DB::table($attendanceTable)
-                ->where('empno', $empno)
-                ->where('txndate', $txndate)
-                ->where('txntime', $txntime)
-                ->first(['seqno']);
-
-            $assignedSeq = $existing !== null ? (int) ($existing->seqno ?? 0) : $nextSeq++;
             $record = [
                 'empno' => $empno,
                 'txndate' => $txndate,
@@ -260,7 +253,6 @@ class AdmsCoreService
 
             $this->fillIfColumnExists($attendanceTable, $record, 'entity03', '');
             $this->fillIfColumnExists($attendanceTable, $record, 'serialno', $serialNumber);
-            $this->fillIfColumnExists($attendanceTable, $record, 'seqno', $assignedSeq);
             $this->fillIfColumnExists($attendanceTable, $record, 'punch', $this->nullableString($columns[2] ?? null) ?? '');
             $this->fillIfColumnExists($attendanceTable, $record, 'status', '');
             $this->fillIfColumnExists($attendanceTable, $record, 'stamp', $stamp !== '' ? $stamp : null);
@@ -268,6 +260,14 @@ class AdmsCoreService
             $this->fillIfColumnExists($attendanceTable, $record, 'client_ip', $request->ip());
             $this->fillIfColumnExists($attendanceTable, $record, 'created_at', now());
             $this->fillIfColumnExists($attendanceTable, $record, 'updated_at', now());
+
+            $match = $this->attendanceRecordIdentity($attendanceTable, $record);
+            $existing = DB::table($attendanceTable)
+                ->where($match)
+                ->first(['seqno']);
+
+            $assignedSeq = $existing !== null ? (int) ($existing->seqno ?? 0) : $nextSeq++;
+            $this->fillIfColumnExists($attendanceTable, $record, 'seqno', $assignedSeq);
 
             $rows[] = $record;
 
@@ -284,13 +284,23 @@ class AdmsCoreService
             return;
         }
 
-        $updateColumns = array_values(array_diff(array_keys($rows[0]), ['empno', 'txndate', 'txntime']));
+        foreach ($rows as $record) {
+            $match = $this->attendanceRecordIdentity($attendanceTable, $record);
+            $existing = DB::table($attendanceTable)->where($match)->exists();
 
-        DB::table($attendanceTable)->upsert(
-            $rows,
-            ['empno', 'txndate', 'txntime'],
-            $updateColumns
-        );
+            if ($existing) {
+                $updatePayload = $record;
+                unset($updatePayload['created_at']);
+
+                DB::table($attendanceTable)
+                    ->where($match)
+                    ->update($updatePayload);
+
+                continue;
+            }
+
+            DB::table($attendanceTable)->insert($record);
+        }
 
         $this->updateDeviceState($serialNumber, [
             'attlogstamp' => $stamp !== '' ? $stamp : ($state->attlogstamp ?? '0'),
@@ -712,6 +722,34 @@ class AdmsCoreService
         if ($this->hasColumn($table, $column)) {
             $record[$column] = $value;
         }
+    }
+
+    private function attendanceRecordIdentity(string $table, array $record): array
+    {
+        if ($this->hasColumn($table, 'serialno') && $this->hasColumn($table, 'raw_line')) {
+            $identity = [
+                'serialno' => (string) ($record['serialno'] ?? ''),
+                'raw_line' => (string) ($record['raw_line'] ?? ''),
+            ];
+
+            if ($this->hasColumn($table, 'stamp')) {
+                $identity['stamp'] = $record['stamp'] ?? null;
+            }
+
+            return $identity;
+        }
+
+        $identity = [
+            'empno' => (string) ($record['empno'] ?? ''),
+            'txndate' => (string) ($record['txndate'] ?? ''),
+            'txntime' => (string) ($record['txntime'] ?? ''),
+        ];
+
+        if ($this->hasColumn($table, 'punch')) {
+            $identity['punch'] = (string) ($record['punch'] ?? '');
+        }
+
+        return $identity;
     }
 
     private function hasColumn(string $table, string $column): bool
