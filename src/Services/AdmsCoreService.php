@@ -217,6 +217,7 @@ class AdmsCoreService
     private function storeAttendanceLogs(string $serialNumber, string $stamp, string $content, Request $request): void
     {
         $attendanceTable = $this->table('attendance');
+        $lines = $this->splitLines($content);
         $rows = [];
         $state = $this->getOrCreateDeviceState($serialNumber);
         $today = now()->toDateString();
@@ -224,7 +225,7 @@ class AdmsCoreService
         $latestTxn = $this->parseTimestamp($state->lasttxndatetime ?? null);
         $latestAttlogDate = $this->parseTimestamp($state->attlogdate ?? null);
 
-        foreach ($this->splitLines($content) as $line) {
+        foreach ($lines as $line) {
             $columns = explode("\t", $line);
 
             if (count($columns) < 2) {
@@ -281,8 +282,18 @@ class AdmsCoreService
         }
 
         if ($rows === []) {
+            Log::info('ZKTeco ADMS ATTLOG payload produced no parsable rows.', [
+                'serial_number' => $serialNumber,
+                'stamp' => $stamp,
+                'content_length' => strlen($content),
+                'line_count' => count($lines),
+                'sample_line' => $lines[0] ?? null,
+            ]);
             return;
         }
+
+        $inserted = 0;
+        $updated = 0;
 
         foreach ($rows as $record) {
             $match = $this->attendanceRecordIdentity($attendanceTable, $record);
@@ -296,10 +307,13 @@ class AdmsCoreService
                     ->where($match)
                     ->update($updatePayload);
 
+                $updated++;
+
                 continue;
             }
 
             DB::table($attendanceTable)->insert($record);
+            $inserted++;
         }
 
         $this->updateDeviceState($serialNumber, [
@@ -308,6 +322,17 @@ class AdmsCoreService
             'sysdate' => $today,
             'seqno' => $nextSeq,
             'lasttxndatetime' => $latestTxn?->format('Y-m-d H:i:s') ?? ($state->lasttxndatetime ?? ''),
+        ]);
+
+        Log::info('ZKTeco ADMS ATTLOG rows stored.', [
+            'serial_number' => $serialNumber,
+            'stamp' => $stamp,
+            'content_length' => strlen($content),
+            'line_count' => count($lines),
+            'parsed_rows' => count($rows),
+            'inserted' => $inserted,
+            'updated' => $updated,
+            'first_row' => $rows[0] ?? null,
         ]);
 
         try {
