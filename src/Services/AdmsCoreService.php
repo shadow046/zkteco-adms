@@ -141,6 +141,135 @@ class AdmsCoreService
         return response('OK');
     }
 
+    public function storeDirectAttendanceRecords(array $records, string $serialNumber, ?string $clientIp = null): array
+    {
+        if ($serialNumber === '') {
+            return [
+                'inserted' => 0,
+                'updated' => 0,
+                'rows' => [],
+            ];
+        }
+
+        $attendanceTable = $this->table('attendance');
+        $state = $this->getOrCreateDeviceState($serialNumber);
+        $latestTxn = $this->parseTimestamp($state->lasttxndatetime ?? null);
+        $latestAttlogDate = $this->parseTimestamp($state->attlogdate ?? null);
+        $rows = [];
+        $inserted = 0;
+        $updated = 0;
+        $affectedDates = [];
+
+        foreach ($records as $record) {
+            if (! is_array($record)) {
+                continue;
+            }
+
+            $timestamp = $this->parseTimestamp($record['timestamp'] ?? null);
+
+            if ($timestamp === null) {
+                continue;
+            }
+
+            $empno = $this->nullableString(isset($record['user_id']) ? (string) $record['user_id'] : null);
+
+            if ($empno === null) {
+                $empno = $this->nullableString(isset($record['uid']) ? (string) $record['uid'] : null);
+            }
+
+            if ($empno === null) {
+                continue;
+            }
+
+            $txndate = $timestamp->toDateString();
+            $txntime = $timestamp->format('H:i:s');
+            $row = [
+                'empno' => $empno,
+                'txndate' => $txndate,
+                'txntime' => $txntime,
+            ];
+
+            $this->fillIfColumnExists($attendanceTable, $row, 'entity03', '');
+            $this->fillIfColumnExists($attendanceTable, $row, 'serialno', $serialNumber);
+            $this->fillIfColumnExists($attendanceTable, $row, 'seqno', 0);
+            $this->fillIfColumnExists($attendanceTable, $row, 'punch', $this->nullableString(isset($record['punch']) ? (string) $record['punch'] : null) ?? '');
+            $this->fillIfColumnExists($attendanceTable, $row, 'status', $this->nullableString(isset($record['status']) ? (string) $record['status'] : null) ?? '');
+            $this->fillIfColumnExists($attendanceTable, $row, 'stamp', null);
+            $this->fillIfColumnExists($attendanceTable, $row, 'raw_line', json_encode($record, JSON_UNESCAPED_SLASHES));
+            $this->fillIfColumnExists($attendanceTable, $row, 'client_ip', $clientIp);
+            $this->fillIfColumnExists($attendanceTable, $row, 'created_at', now());
+            $this->fillIfColumnExists($attendanceTable, $row, 'updated_at', now());
+
+            $rows[] = $row;
+            $affectedDates[$txndate] = true;
+
+            if ($latestTxn === null || $timestamp->gt($latestTxn)) {
+                $latestTxn = $timestamp->copy();
+            }
+
+            if ($latestAttlogDate === null || $timestamp->gt($latestAttlogDate)) {
+                $latestAttlogDate = $timestamp->copy();
+            }
+        }
+
+        foreach ($rows as $row) {
+            $match = $this->attendanceRecordIdentity($attendanceTable, $row);
+            $existing = DB::table($attendanceTable)->where($match)->exists();
+
+            if ($existing) {
+                $updatePayload = $row;
+                unset($updatePayload['created_at']);
+
+                DB::table($attendanceTable)
+                    ->where($match)
+                    ->update($updatePayload);
+
+                $updated++;
+
+                continue;
+            }
+
+            DB::table($attendanceTable)->insert($row);
+            $inserted++;
+        }
+
+        $lastSeqSnapshot = $this->resequencedAttendanceDates(
+            $attendanceTable,
+            $serialNumber,
+            array_keys($affectedDates)
+        );
+
+        $latestSeqDate = $latestAttlogDate?->toDateString();
+        $latestSeqValue = $latestSeqDate !== null
+            ? (int) ($lastSeqSnapshot[$latestSeqDate] ?? 0)
+            : (int) ($state->seqno ?? 0);
+
+        $this->updateDeviceState($serialNumber, [
+            'sysdate' => $latestSeqDate ?? ($state->sysdate ?? ''),
+            'seqno' => $latestSeqValue,
+            'lasttxndatetime' => $latestTxn?->format('Y-m-d H:i:s') ?? ($state->lasttxndatetime ?? ''),
+            'attlogdate' => $latestAttlogDate?->format('Y-m-d H:i:s') ?? ($state->attlogdate ?? ''),
+        ]);
+
+        if ($rows !== []) {
+            try {
+                Event::dispatch(new AttendanceLogsStored($serialNumber, $rows));
+            } catch (\Throwable $exception) {
+                Log::error('ZKTeco ADMS direct attendance import pairing failed after raw log ingest.', [
+                    'serial_number' => $serialNumber,
+                    'row_count' => count($rows),
+                    'message' => $exception->getMessage(),
+                ]);
+            }
+        }
+
+        return [
+            'inserted' => $inserted,
+            'updated' => $updated,
+            'rows' => $rows,
+        ];
+    }
+
     private function buildCdataOptionsResponse(string $serialNumber, string $pushver): string
     {
         $state = $this->getOrCreateDeviceState($serialNumber);

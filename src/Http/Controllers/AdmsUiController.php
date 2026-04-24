@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Shadow046\ZktecoAdms\Services\AdmsCommandService;
+use Shadow046\ZktecoAdms\Services\AdmsCoreService;
 use Shadow046\ZktecoAdms\Services\DtrPairingService;
+use Shadow046\ZktecoAdms\Services\ZkPythonBridgeService;
 
 class AdmsUiController extends Controller
 {
@@ -65,6 +67,68 @@ class AdmsUiController extends Controller
         return redirect()->route('zkteco-adms.ui.dashboard')
             ->with('status', "Queued device command #{$command['id']}")
             ->with('command_text', $command['command_text']);
+    }
+
+    public function queryPythonLogs(
+        Request $request,
+        ZkPythonBridgeService $python,
+        AdmsCoreService $core
+    ): RedirectResponse {
+        $validated = $request->validate([
+            'ip_address' => ['required', 'ip'],
+            'start' => ['required', 'date'],
+            'end' => ['required', 'date', 'after_or_equal:start'],
+            'port' => ['nullable', 'integer', 'min:1', 'max:65535'],
+            'password' => ['nullable', 'integer', 'min:0'],
+            'limit' => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'force_udp' => ['nullable', 'boolean'],
+        ]);
+
+        try {
+            $result = $python->queryLogs(
+                $validated['ip_address'],
+                (int) ($validated['port'] ?? 4370),
+                (int) ($validated['password'] ?? 0),
+                (int) ($validated['limit'] ?? 300),
+                filter_var($request->input('force_udp', false), FILTER_VALIDATE_BOOL)
+            );
+
+            $start = Carbon::parse($validated['start']);
+            $end = Carbon::parse($validated['end']);
+
+            $filteredRecords = collect($result['records'] ?? [])
+                ->filter(function (array $record) use ($start, $end): bool {
+                    $timestamp = Carbon::createFromFormat('Y-m-d H:i:s', (string) ($record['timestamp'] ?? ''));
+
+                    return $timestamp !== false
+                        && $timestamp->gte($start)
+                        && $timestamp->lte($end);
+                })
+                ->values()
+                ->all();
+
+            $stored = $core->storeDirectAttendanceRecords(
+                $filteredRecords,
+                (string) ($result['serial_number'] ?? ''),
+                $request->ip()
+            );
+        } catch (\Throwable $exception) {
+            return redirect()->route('zkteco-adms.ui.dashboard')
+                ->withErrors(['python_log_query' => $exception->getMessage()])
+                ->withInput();
+        }
+
+        return redirect()->route('zkteco-adms.ui.dashboard')
+            ->with(
+                'status',
+                "Nakuha ang {$result['attendance_count']} logs mula sa {$result['serial_number']}; "
+                .count($filteredRecords)." ang tumama sa date range, {$stored['inserted']} new at {$stored['updated']} updated rows sa attendance table."
+            )
+            ->with(
+                'command_text',
+                "Direct device query | Device IP {$result['ip_address']} | Pulled last ".((int) ($validated['limit'] ?? 300))
+                ." records | Range {$start->format('Y-m-d H:i:s')} to {$end->format('Y-m-d H:i:s')} | Duplicates kept in sync: {$stored['updated']}"
+            );
     }
 
     public function attendanceIndex(Request $request)

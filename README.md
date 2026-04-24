@@ -106,6 +106,11 @@ All endpoints return JSON and insert rows into the configured `device_commands` 
 
 This frontend is package-owned and meant as a ready-to-use testing surface for host apps.
 
+The dashboard includes:
+
+- ADMS ATTLOG command queue form
+- direct Python log query form for pulling logs from the device and saving them into the configured attendance table
+
 ## Optional Python Bridge
 The package now includes the direct-device helper scripts under `scripts/` and a reusable PHP wrapper service:
 

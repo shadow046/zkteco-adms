@@ -25,25 +25,64 @@
     </div>
 
     <div class="grid">
-        <div class="panel">
-            <h2>ATTLOG Query</h2>
-            <div class="meta" style="margin-top:0; margin-bottom:14px;">Mag-queue ng ADMS ATTLOG command para sa isang device.</div>
-            <form class="stack" method="POST" action="{{ route('zkteco-adms.ui.attlog-query') }}">
-                @csrf
-                <label>
-                    Serial Number
-                    <input type="text" name="sn" placeholder="3647184760209" value="{{ old('sn') }}">
-                </label>
-                <label>
-                    Start Date/Time
-                    <input type="datetime-local" name="start" value="{{ old('start', now()->startOfDay()->format('Y-m-d\TH:i')) }}">
-                </label>
-                <label>
-                    End Date/Time
-                    <input type="datetime-local" name="end" value="{{ old('end', now()->endOfDay()->format('Y-m-d\TH:i')) }}">
-                </label>
-                <button type="submit">Queue ATTLOG Query</button>
-            </form>
+        <div class="stack">
+            <div class="panel">
+                <h2>ATTLOG Query</h2>
+                <div class="meta" style="margin-top:0; margin-bottom:14px;">Mag-queue ng ADMS ATTLOG command para sa isang device.</div>
+                <form class="stack" method="POST" action="{{ route('zkteco-adms.ui.attlog-query') }}">
+                    @csrf
+                    <label>
+                        Serial Number
+                        <input type="text" name="sn" placeholder="3647184760209" value="{{ old('sn') }}">
+                    </label>
+                    <label>
+                        Start Date/Time
+                        <input type="datetime-local" name="start" value="{{ old('start', now()->startOfDay()->format('Y-m-d\TH:i')) }}">
+                    </label>
+                    <label>
+                        End Date/Time
+                        <input type="datetime-local" name="end" value="{{ old('end', now()->endOfDay()->format('Y-m-d\TH:i')) }}">
+                    </label>
+                    <button type="submit">Queue ATTLOG Query</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Python Log Query</h2>
+                <div class="meta" style="margin-top:0; margin-bottom:14px;">Direct pull ito mula sa device gamit ang bundled Python bridge. Hihilahin muna ang last N records, tapos dito pa lang natin ifi-filter sa date range bago i-save sa attendance table.</div>
+                <form class="stack" method="POST" action="{{ route('zkteco-adms.ui.python-log-query') }}">
+                    @csrf
+                    <label>
+                        Target Device IP
+                        <input type="text" name="ip_address" placeholder="192.168.1.201" value="{{ old('ip_address') }}">
+                    </label>
+                    <label>
+                        Start Date/Time
+                        <input type="datetime-local" name="start" value="{{ old('start', now()->startOfDay()->format('Y-m-d\TH:i')) }}">
+                    </label>
+                    <label>
+                        End Date/Time
+                        <input type="datetime-local" name="end" value="{{ old('end', now()->endOfDay()->format('Y-m-d\TH:i')) }}">
+                    </label>
+                    <label>
+                        Last N Records To Pull
+                        <input type="number" name="limit" min="1" max="5000" value="{{ old('limit', 300) }}">
+                    </label>
+                    <label>
+                        Port
+                        <input type="number" name="port" min="1" max="65535" value="{{ old('port', 4370) }}">
+                    </label>
+                    <label>
+                        Device Password
+                        <input type="number" name="password" min="0" value="{{ old('password', 0) }}">
+                    </label>
+                    <label style="display:flex; align-items:center; gap:10px; color:var(--text);">
+                        <input type="checkbox" name="force_udp" value="1" {{ old('force_udp') ? 'checked' : '' }} style="width:auto;">
+                        <span>Force UDP</span>
+                    </label>
+                    <button type="submit">Query Logs From Device</button>
+                </form>
+            </div>
         </div>
 
         <div class="stack">

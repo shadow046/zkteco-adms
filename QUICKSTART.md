@@ -62,6 +62,11 @@ Default UI pages:
 - `/shadow046/adms/daily-logs`
 - `/shadow046/adms/sequence-audit`
 
+The dashboard includes both:
+
+- ADMS ATTLOG queueing
+- direct Python device log query
+
 ## 5. Optional Python tools
 
 Enable the direct-device Python tools only if you need them:
