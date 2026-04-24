@@ -26,6 +26,8 @@ For developers who prefer to inspect or fork the controller layer in the host ap
 
 The install command also publishes optional service stubs into `app/Services/ZktecoAdms` so the host app can inspect or fork the package service layer without editing `vendor/`.
 
+See [OVERRIDES.md](OVERRIDES.md) for the recommended override strategy and the difference between package defaults and host-side published copies.
+
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
 
 ## Config
