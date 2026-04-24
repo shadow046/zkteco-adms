@@ -4,6 +4,8 @@ Reusable ZKTeco ADMS server package for Laravel applications.
 
 ## Features
 - Provides `/iclock` ADMS endpoints as a package.
+- Restricts the device-facing ADMS surface to the four standard device endpoints:
+  `cdata`, `fdata`, `getrequest`, and `devicecmd`.
 - Stores ATTLOG, OPERLOG, USERINFO, FINGERTMP, photos, command queue, device polls, and device state.
 - Creates a default `inout_raw` table when the host project does not already have one.
 - Includes built-in `DtrPairingService` logic and optional automatic pairing after ATTLOG ingest.

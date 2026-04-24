@@ -21,6 +21,8 @@ use Shadow046\ZktecoAdms\Http\Controllers\AdmsEndpointController;
 |
 */
 
+// Only expose the four device-facing ADMS endpoints under the configured prefix.
+// All package UI pages and command helpers live on separate route files/prefixes.
 Route::prefix(config('zkteco-adms.route_prefix', 'iclock'))
     ->middleware(config('zkteco-adms.middleware', []))
     ->group(function (): void {
