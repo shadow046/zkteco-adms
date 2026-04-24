@@ -3,10 +3,10 @@
 namespace App\Http\Controllers\ZktecoAdms;
 
 use App\Http\Controllers\Controller;
+use App\Services\ZktecoAdms\AdmsCommandService;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Shadow046\ZktecoAdms\Services\AdmsCommandService;
 
 class AdmsCommandController extends Controller
 {

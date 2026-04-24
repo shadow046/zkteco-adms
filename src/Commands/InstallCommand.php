@@ -18,6 +18,7 @@ class InstallCommand extends Command
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-scripts']);
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-routes']);
         $this->call('vendor:publish', ['--tag' => 'zkteco-adms-controllers']);
+        $this->call('vendor:publish', ['--tag' => 'zkteco-adms-services']);
 
         $this->components->info('shadow046/zkteco-adms assets published.');
         $this->line('Package version: '.$this->packageVersion());
@@ -27,12 +28,13 @@ class InstallCommand extends Command
         $this->line('   This is legacy-safe for existing inout_raw/dtr and existing ADMS tables.');
         $this->line('3. Package route stubs were published to routes/zkteco-adms for optional host-side customization.');
         $this->line('4. Optional host controller stubs were published to app/Http/Controllers/ZktecoAdms.');
-        $this->line('5. Python helper scripts and the bundled zk library were published to scripts/zkteco-adms.');
-        $this->line('6. Make sure storage is writable so ATTPHOTO files can be saved.');
-        $this->line('7. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
-        $this->line('8. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
-        $this->line('9. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
-        $this->line('10. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
+        $this->line('5. Optional host service stubs were published to app/Services/ZktecoAdms.');
+        $this->line('6. Python helper scripts and the bundled zk library were published to scripts/zkteco-adms.');
+        $this->line('7. Make sure storage is writable so ATTPHOTO files can be saved.');
+        $this->line('8. Point your ZKTeco device to /'.trim((string) config('zkteco-adms.route_prefix', 'iclock'), '/'));
+        $this->line('9. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
+        $this->line('10. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
+        $this->line('11. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
 
         return self::SUCCESS;
     }

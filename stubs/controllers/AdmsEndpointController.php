@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\ZktecoAdms;
 
 use App\Http\Controllers\Controller;
+use App\Services\ZktecoAdms\AdmsCoreService;
 use Illuminate\Http\Request;
-use Shadow046\ZktecoAdms\Services\AdmsCoreService;
 use Symfony\Component\HttpFoundation\Response;
 
 class AdmsEndpointController extends Controller

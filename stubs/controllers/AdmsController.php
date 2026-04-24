@@ -3,14 +3,14 @@
 namespace App\Http\Controllers\ZktecoAdms;
 
 use App\Http\Controllers\Controller;
+use App\Services\ZktecoAdms\DtrPairingService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-use Shadow046\ZktecoAdms\Services\AdmsCommandService;
-use Shadow046\ZktecoAdms\Services\DtrPairingService;
+use App\Services\ZktecoAdms\AdmsCommandService;
 
 class AdmsController extends Controller
 {
