@@ -20,6 +20,8 @@ php artisan migrate:adms
 
 The install command also publishes the optional Python helper scripts and bundled `zk` library into the host project at `scripts/zkteco-adms` so the common direct-device setup does not need a custom scripts path.
 
+It also publishes optional route stubs into `routes/zkteco-adms`. When those files exist, the package will automatically load them instead of its internal default route files, so the host app can customize package routes without editing `vendor/`.
+
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
 
 ## Config
@@ -43,6 +45,7 @@ Useful options:
 - package service provider
 - install command
 - `/iclock` ADMS routes
+- publishable route stubs with host override support
 - package-owned test frontend for dashboard, attendance, and daily logs
 - ADMS core ingest service
 - optional Python bridge service and packaged helper scripts

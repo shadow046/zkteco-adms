@@ -18,9 +18,9 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        $this->loadRoutesFrom(__DIR__.'/../routes/api.php');
-        $this->loadRoutesFrom(__DIR__.'/../routes/commands.php');
-        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom($this->routeOverridePath('api.php'));
+        $this->loadRoutesFrom($this->routeOverridePath('commands.php'));
+        $this->loadRoutesFrom($this->routeOverridePath('web.php'));
         $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'zkteco-adms');
 
@@ -38,11 +38,28 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
             __DIR__.'/../scripts' => base_path('scripts/zkteco-adms'),
         ], 'zkteco-adms-scripts');
 
+        $this->publishes([
+            __DIR__.'/../routes/api.php' => base_path('routes/zkteco-adms/api.php'),
+            __DIR__.'/../routes/commands.php' => base_path('routes/zkteco-adms/commands.php'),
+            __DIR__.'/../routes/web.php' => base_path('routes/zkteco-adms/web.php'),
+        ], 'zkteco-adms-routes');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,
                 MigrateAdmsCommand::class,
             ]);
         }
+    }
+
+    private function routeOverridePath(string $filename): string
+    {
+        $hostPath = base_path('routes/zkteco-adms/'.$filename);
+
+        if (is_file($hostPath)) {
+            return $hostPath;
+        }
+
+        return __DIR__.'/../routes/'.$filename;
     }
 }
