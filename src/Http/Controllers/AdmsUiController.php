@@ -9,6 +9,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Shadow046\ZktecoAdms\Services\AdmsCommandService;
 use Shadow046\ZktecoAdms\Services\DtrPairingService;
 
@@ -170,6 +171,95 @@ class AdmsUiController extends Controller
             'filterStart' => $start->format('Y-m-d'),
             'filterEnd' => $end->format('Y-m-d'),
             'filterEmpno' => $empno,
+            'perPage' => $perPage,
+        ]);
+    }
+
+    public function sequenceAuditIndex(Request $request)
+    {
+        $attendanceTable = (string) config('zkteco-adms.attendance_table', 'inout_raw');
+
+        if (! Schema::hasTable($attendanceTable)) {
+            abort(404, 'Attendance table not found.');
+        }
+
+        foreach (['serialno', 'txndate', 'seqno'] as $requiredColumn) {
+            if (! Schema::hasColumn($attendanceTable, $requiredColumn)) {
+                abort(404, "Attendance table is missing the {$requiredColumn} column needed for sequence audit.");
+            }
+        }
+
+        $validated = $request->validate([
+            'start' => ['nullable', 'date'],
+            'end' => ['nullable', 'date', 'after_or_equal:start'],
+            'serialno' => ['nullable', 'string', 'max:50'],
+            'per_page' => ['nullable', 'integer', 'min:20', 'max:500'],
+        ]);
+
+        $start = isset($validated['start'])
+            ? Carbon::parse($validated['start'])
+            : now()->startOfMonth();
+        $end = isset($validated['end'])
+            ? Carbon::parse($validated['end'])
+            : now()->endOfMonth();
+        $serialno = trim((string) ($validated['serialno'] ?? ''));
+        $perPage = (int) ($validated['per_page'] ?? 100);
+
+        $auditRows = DB::table($attendanceTable)
+            ->selectRaw('serialno, txndate, COUNT(*) as row_count, MIN(seqno) as min_seqno, MAX(seqno) as max_seqno, COUNT(DISTINCT seqno) as distinct_seqno_count')
+            ->whereBetween('txndate', [$start->toDateString(), $end->toDateString()])
+            ->when($serialno !== '', fn ($query) => $query->where('serialno', $serialno))
+            ->groupBy('serialno', 'txndate')
+            ->orderByDesc('txndate')
+            ->orderBy('serialno')
+            ->paginate($perPage)
+            ->withQueryString();
+
+        $auditRows->setCollection(
+            $auditRows->getCollection()->map(function (object $row): object {
+                $rowCount = (int) ($row->row_count ?? 0);
+                $minSeq = (int) ($row->min_seqno ?? 0);
+                $maxSeq = (int) ($row->max_seqno ?? 0);
+                $distinctSeqCount = (int) ($row->distinct_seqno_count ?? 0);
+                $expectedDistinctCount = $maxSeq >= $minSeq ? ($maxSeq - $minSeq + 1) : 0;
+                $duplicateCount = max(0, $rowCount - $distinctSeqCount);
+                $gapCount = max(0, $expectedDistinctCount - $distinctSeqCount);
+
+                $flags = [];
+
+                if ($minSeq !== 0) {
+                    $flags[] = 'bad_start';
+                }
+
+                if ($duplicateCount > 0) {
+                    $flags[] = 'duplicates';
+                }
+
+                if ($gapCount > 0) {
+                    $flags[] = 'gaps';
+                }
+
+                $row->duplicate_count = $duplicateCount;
+                $row->gap_count = $gapCount;
+                $row->expected_distinct_count = $expectedDistinctCount;
+                $row->flag_labels = collect($flags)
+                    ->map(fn (string $flag): string => Str::headline(str_replace('_', ' ', $flag)))
+                    ->values()
+                    ->all();
+                $row->has_issue = $flags !== [];
+
+                return $row;
+            })
+        );
+
+        return view('zkteco-adms::sequence-audit-index', [
+            'uiPrefix' => trim((string) config('zkteco-adms.ui_route_prefix', 'shadow046/adms'), '/'),
+            'pageTitle' => 'Sequence Audit',
+            'activeNav' => 'sequence-audit',
+            'auditRows' => $auditRows,
+            'filterStart' => $start->format('Y-m-d'),
+            'filterEnd' => $end->format('Y-m-d'),
+            'filterSerialno' => $serialno,
             'perPage' => $perPage,
         ]);
     }

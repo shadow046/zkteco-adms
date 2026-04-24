@@ -128,6 +128,7 @@
                     <a class="{{ ($activeNav ?? '') === 'dashboard' ? 'active' : '' }}" href="{{ url('/'.$uiPrefix.'/dashboard') }}">Dashboard</a>
                     <a class="{{ ($activeNav ?? '') === 'attendance' ? 'active' : '' }}" href="{{ url('/'.$uiPrefix.'/attendance') }}">Attendance</a>
                     <a class="{{ ($activeNav ?? '') === 'daily-logs' ? 'active' : '' }}" href="{{ url('/'.$uiPrefix.'/daily-logs') }}">Daily Logs</a>
+                    <a class="{{ ($activeNav ?? '') === 'sequence-audit' ? 'active' : '' }}" href="{{ url('/'.$uiPrefix.'/sequence-audit') }}">Sequence Audit</a>
                 </div>
             </div>
             <div class="content">
