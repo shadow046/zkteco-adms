@@ -161,6 +161,11 @@ When upgrading the package:
 3. compare your host overrides against the new package files
 4. merge only the changes you want
 
+Important:
+
+- if the package adds a new route, your existing published `routes/zkteco-adms/*.php` files will not get that route automatically
+- you must manually merge it, or republish the route stubs with `--force`
+
 ## Suggested Host Workflow
 
 If you are just starting:

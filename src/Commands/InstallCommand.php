@@ -41,6 +41,7 @@ class InstallCommand extends Command
         $this->line('13. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
         $this->line('14. If your device only supports HTTP, see docs/zkteco-adms/NGINX.md for port 80/custom-port nginx examples.');
         $this->line('15. If you hit an unexpected 500 right after install/update, try php artisan cache:clear first.');
+        $this->line('16. If you already published routes/zkteco-adms/*.php, merge or republish them after package updates that add new UI or command routes.');
 
         return self::SUCCESS;
     }

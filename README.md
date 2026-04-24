@@ -204,3 +204,19 @@ instead of:
 - `Shadow046\ZktecoAdms\Http\Controllers\...`
 
 See [OVERRIDES.md](OVERRIDES.md) for the full override strategy.
+
+### `Route [zkteco-adms.ui.python-log-query] not defined`
+
+This usually means:
+
+- your package version is new enough to render the updated dashboard view
+- but your published host route override file in `routes/zkteco-adms/web.php` is still an older copy
+
+Fix it by either:
+
+```bash
+php artisan vendor:publish --tag=zkteco-adms-routes --force
+php artisan cache:clear
+```
+
+or by manually merging the new route into `routes/zkteco-adms/web.php`.
