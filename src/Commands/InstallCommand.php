@@ -35,6 +35,7 @@ class InstallCommand extends Command
         $this->line('9. Toggle built-in DTR pairing with ZKTECO_ADMS_DTR_PAIRING_ENABLED');
         $this->line('10. Optional: enable the Python bridge with ZKTECO_ADMS_PYTHON_ENABLED for direct device tools.');
         $this->line('11. The default Python setup now points ZKTECO_ADMS_PYZK_ROOT to scripts/zkteco-adms.');
+        $this->line('12. If you hit an unexpected 500 right after install/update, try php artisan cache:clear first.');
 
         return self::SUCCESS;
     }

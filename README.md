@@ -30,6 +30,12 @@ See [OVERRIDES.md](OVERRIDES.md) for the recommended override strategy and the d
 
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
 
+If you hit an unexpected `500` immediately after install or package update, try:
+
+```bash
+php artisan cache:clear
+```
+
 ## Config
 Published config file: `config/zkteco-adms.php`
 
