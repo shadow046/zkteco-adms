@@ -221,6 +221,8 @@ class AdmsCoreService
         $rows = [];
         $state = $this->getOrCreateDeviceState($serialNumber);
         $nextSeqByDate = [];
+        $stateSeqDate = trim((string) ($state->sysdate ?? ''));
+        $stateSeqValue = (int) ($state->seqno ?? 0);
         $latestTxn = $this->parseTimestamp($state->lasttxndatetime ?? null);
         $latestAttlogDate = $this->parseTimestamp($state->attlogdate ?? null);
 
@@ -261,7 +263,13 @@ class AdmsCoreService
             $this->fillIfColumnExists($attendanceTable, $record, 'created_at', now());
             $this->fillIfColumnExists($attendanceTable, $record, 'updated_at', now());
 
-            $assignedSeq = $nextSeqByDate[$txndate] ?? 0;
+            if (! array_key_exists($txndate, $nextSeqByDate)) {
+                $nextSeqByDate[$txndate] = $txndate === $stateSeqDate
+                    ? max(0, $stateSeqValue + 1)
+                    : 0;
+            }
+
+            $assignedSeq = $nextSeqByDate[$txndate];
             $nextSeqByDate[$txndate] = $assignedSeq + 1;
             $this->fillIfColumnExists($attendanceTable, $record, 'seqno', $assignedSeq);
 
