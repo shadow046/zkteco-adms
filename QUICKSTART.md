@@ -2,6 +2,11 @@
 
 This is the shortest working path for most Laravel projects.
 
+Compatibility:
+
+- Laravel `9+`
+- PHP `8.1+`
+
 ## 1. Install the package
 
 ```bash

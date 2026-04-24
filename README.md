@@ -2,6 +2,11 @@
 
 Reusable ZKTeco ADMS server package for Laravel applications.
 
+Compatibility:
+
+- Laravel `9+`
+- PHP `8.1+`
+
 ## Features
 - Provides `/iclock` ADMS endpoints as a package.
 - Restricts the device-facing ADMS surface to the four standard device endpoints:
