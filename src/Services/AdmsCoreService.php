@@ -220,8 +220,7 @@ class AdmsCoreService
         $lines = $this->splitLines($content);
         $rows = [];
         $state = $this->getOrCreateDeviceState($serialNumber);
-        $today = now()->toDateString();
-        $nextSeq = ($state->sysdate ?? '') === $today ? (int) ($state->seqno ?? 0) : 0;
+        $nextSeqByDate = [];
         $latestTxn = $this->parseTimestamp($state->lasttxndatetime ?? null);
         $latestAttlogDate = $this->parseTimestamp($state->attlogdate ?? null);
 
@@ -262,12 +261,8 @@ class AdmsCoreService
             $this->fillIfColumnExists($attendanceTable, $record, 'created_at', now());
             $this->fillIfColumnExists($attendanceTable, $record, 'updated_at', now());
 
-            $match = $this->attendanceRecordIdentity($attendanceTable, $record);
-            $existing = DB::table($attendanceTable)
-                ->where($match)
-                ->first(['seqno']);
-
-            $assignedSeq = $existing !== null ? (int) ($existing->seqno ?? 0) : $nextSeq++;
+            $assignedSeq = $nextSeqByDate[$txndate] ?? 0;
+            $nextSeqByDate[$txndate] = $assignedSeq + 1;
             $this->fillIfColumnExists($attendanceTable, $record, 'seqno', $assignedSeq);
 
             $rows[] = $record;
@@ -316,11 +311,16 @@ class AdmsCoreService
             $inserted++;
         }
 
+        $latestSeqDate = $latestAttlogDate?->toDateString();
+        $latestSeqValue = $latestSeqDate !== null
+            ? max(0, ($nextSeqByDate[$latestSeqDate] ?? 1) - 1)
+            : (int) ($state->seqno ?? 0);
+
         $this->updateDeviceState($serialNumber, [
             'attlogstamp' => $stamp !== '' ? $stamp : ($state->attlogstamp ?? '0'),
             'attlogdate' => $latestAttlogDate?->format('Y-m-d H:i:s') ?? ($state->attlogdate ?? ''),
-            'sysdate' => $today,
-            'seqno' => $nextSeq,
+            'sysdate' => $latestSeqDate ?? ($state->sysdate ?? ''),
+            'seqno' => $latestSeqValue,
             'lasttxndatetime' => $latestTxn?->format('Y-m-d H:i:s') ?? ($state->lasttxndatetime ?? ''),
         ]);
 
