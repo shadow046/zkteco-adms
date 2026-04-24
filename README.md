@@ -115,3 +115,74 @@ ZKTECO_ADMS_PYZK_ROOT=scripts/zkteco-adms
 ```
 
 By default, `php artisan zkteco-adms:install` publishes the packaged scripts and bundled `zk` library into `scripts/zkteco-adms` in the host project. Use `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH` only if you want to override that default location with a custom script directory.
+
+## Troubleshooting
+
+### Unexpected 500 right after install or package update
+
+Try:
+
+```bash
+php artisan cache:clear
+```
+
+If needed, follow with:
+
+```bash
+php artisan optimize:clear
+```
+
+### `ATTPHOTO` uploads fail
+
+Make sure these paths are writable by the web server user:
+
+- `storage/`
+- `bootstrap/cache/`
+
+### `bootstrap/cache directory must be present and writable`
+
+Create the directory if it is missing, then fix ownership/permissions for:
+
+- `bootstrap/cache/`
+- `storage/`
+
+### Python bridge says `No module named 'zk'`
+
+Make sure you have run:
+
+```bash
+php artisan zkteco-adms:install
+```
+
+That publishes:
+
+- `scripts/zkteco-adms/`
+- bundled `zk` library
+
+Then verify:
+
+```bash
+python3 scripts/zkteco-adms/zk_query_logs.py --help
+```
+
+If you use a custom Python location, set:
+
+- `ZKTECO_ADMS_PYZK_ROOT`
+- `ZKTECO_ADMS_PYTHON_SCRIPTS_PATH`
+
+### ADMS host works but your host override controllers/services do not
+
+Remember:
+
+- route overrides are auto-detected from `routes/zkteco-adms/*.php`
+- published controllers and services are not auto-wired
+
+If you want to use host controllers, update the published route stubs to point to:
+
+- `App\Http\Controllers\ZktecoAdms\...`
+
+instead of:
+
+- `Shadow046\ZktecoAdms\Http\Controllers\...`
+
+See [OVERRIDES.md](OVERRIDES.md) for the full override strategy.
