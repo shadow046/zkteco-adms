@@ -107,9 +107,11 @@ class AdmsUiController extends Controller
                 ->values()
                 ->all();
 
+            $serialNumber = trim((string) ($result['serial_number'] ?? $result['serial'] ?? ''));
+
             $stored = $core->storeDirectAttendanceRecords(
                 $filteredRecords,
-                (string) ($result['serial_number'] ?? ''),
+                $serialNumber,
                 $request->ip()
             );
         } catch (\Throwable $exception) {
@@ -121,7 +123,7 @@ class AdmsUiController extends Controller
         return redirect()->route('zkteco-adms.ui.dashboard')
             ->with(
                 'status',
-                "Nakuha ang {$result['attendance_count']} logs mula sa {$result['serial_number']}; "
+                "Nakuha ang {$result['attendance_count']} logs mula sa {$serialNumber}; "
                 .count($filteredRecords)." ang tumama sa date range, {$stored['inserted']} new at {$stored['updated']} updated rows sa attendance table."
             )
             ->with(

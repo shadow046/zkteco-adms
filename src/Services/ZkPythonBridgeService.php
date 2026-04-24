@@ -135,12 +135,22 @@ class ZkPythonBridgeService
         int $limit = 300,
         bool $forceUdp = false
     ): array {
-        return $this->runScript('zk_query_logs.py', [
+        $payload = $this->runScript('zk_query_logs.py', [
             '--ip', $ipAddress,
             '--port', (string) $port,
             '--password', (string) $password,
             '--limit', (string) max(1, $limit),
         ], $forceUdp, 'Invalid attendance log payload returned by Python bridge.');
+
+        return [
+            'serial_number' => trim((string) ($payload['serial'] ?? '')),
+            'ip_address' => $ipAddress,
+            'attendance_count' => (int) ($payload['attendance_count'] ?? 0),
+            'records' => collect($payload['records'] ?? [])
+                ->filter(fn ($record): bool => is_array($record))
+                ->values()
+                ->all(),
+        ];
     }
 
     public function recentBackups(int $limit = 10): Collection
