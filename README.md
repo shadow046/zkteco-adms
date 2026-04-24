@@ -30,6 +30,8 @@ The package Markdown docs are also published into `docs/zkteco-adms` so the host
 
 Start with [QUICKSTART.md](QUICKSTART.md) if you want the shortest working setup.
 
+The install command also publishes nginx examples into `nginx/zkteco-adms` for setups where the device must push to plain `HTTP` on port `80` or a custom dedicated port.
+
 See [OVERRIDES.md](OVERRIDES.md) for the recommended override strategy and the difference between package defaults and host-side published copies.
 
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.

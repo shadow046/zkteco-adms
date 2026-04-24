@@ -1,0 +1,26 @@
+server {
+    listen __ADMS_PORT__;
+    listen [::]:__ADMS_PORT__;
+
+    server_name __SERVER_NAME__;
+    root __PROJECT_PUBLIC__;
+    index index.php index.html;
+
+    access_log /var/log/nginx/zkteco-adms-port-access.log;
+    error_log /var/log/nginx/zkteco-adms-port-error.log;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include fastcgi_params;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        fastcgi_param DOCUMENT_ROOT $realpath_root;
+        fastcgi_pass unix:__PHP_FPM_SOCK__;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}

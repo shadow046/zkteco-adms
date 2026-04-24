@@ -60,10 +60,16 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../README.md' => base_path('docs/zkteco-adms/README.md'),
             __DIR__.'/../QUICKSTART.md' => base_path('docs/zkteco-adms/QUICKSTART.md'),
+            __DIR__.'/../NGINX.md' => base_path('docs/zkteco-adms/NGINX.md'),
             __DIR__.'/../PUBLISHING.md' => base_path('docs/zkteco-adms/PUBLISHING.md'),
             __DIR__.'/../OVERRIDES.md' => base_path('docs/zkteco-adms/OVERRIDES.md'),
             __DIR__.'/../CHANGELOG.md' => base_path('docs/zkteco-adms/CHANGELOG.md'),
         ], 'zkteco-adms-docs');
+
+        $this->publishes([
+            __DIR__.'/../nginx/http-default-port.conf.example' => base_path('nginx/zkteco-adms/http-default-port.conf.example'),
+            __DIR__.'/../nginx/http-custom-port.conf.example' => base_path('nginx/zkteco-adms/http-custom-port.conf.example'),
+        ], 'zkteco-adms-nginx');
 
         if ($this->app->runningInConsole()) {
             $this->commands([

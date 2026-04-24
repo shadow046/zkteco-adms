@@ -26,6 +26,7 @@ The install command publishes these useful host-side files:
 - `app/Services/ZktecoAdms/*.php`
 - `scripts/zkteco-adms/*`
 - `docs/zkteco-adms/*.md`
+- `nginx/zkteco-adms/*.example`
 
 ## 3. Point the device to the ADMS endpoint
 
@@ -36,6 +37,16 @@ Default route prefix:
 Example:
 
 - `https://your-domain.example/iclock`
+
+If your device only supports plain `HTTP`, use the published nginx examples in:
+
+- `docs/zkteco-adms/NGINX.md`
+- `nginx/zkteco-adms/*.example`
+
+You can expose the ADMS endpoint on:
+
+- port `80`
+- or a custom port such as `8081`
 
 ## 4. Open the built-in test UI
 
