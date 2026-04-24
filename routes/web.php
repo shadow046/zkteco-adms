@@ -3,6 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use Shadow046\ZktecoAdms\Http\Controllers\AdmsUiController;
 
+/*
+|--------------------------------------------------------------------------
+| ZKTeco ADMS Web Routes
+|--------------------------------------------------------------------------
+|
+| Default package controller:
+|   Shadow046\ZktecoAdms\Http\Controllers\AdmsUiController
+|
+| Optional host override:
+|   App\Http\Controllers\ZktecoAdms\AdmsController
+|
+| If you want to use the host-published controller stub instead, replace
+| the use statement above with:
+|
+| use App\Http\Controllers\ZktecoAdms\AdmsController as AdmsUiController;
+|
+*/
+
 Route::prefix(trim((string) config('zkteco-adms.ui_route_prefix', 'shadow046/adms'), '/'))
     ->middleware(config('zkteco-adms.ui_middleware', []))
     ->name('zkteco-adms.ui.')

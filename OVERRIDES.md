@@ -133,6 +133,8 @@ instead of:
 
 - `Shadow046\ZktecoAdms\Http\Controllers\...`
 
+The published route stubs already include commented examples showing the package controller imports and the matching host controller imports, so the swap is quick and explicit.
+
 ### 2. Published host controllers already point to host service stubs
 
 The published controller stubs are wired to:
