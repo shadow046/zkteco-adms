@@ -44,6 +44,12 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
             __DIR__.'/../routes/web.php' => base_path('routes/zkteco-adms/web.php'),
         ], 'zkteco-adms-routes');
 
+        $this->publishes([
+            __DIR__.'/../stubs/controllers/AdmsController.php' => app_path('Http/Controllers/ZktecoAdms/AdmsController.php'),
+            __DIR__.'/../stubs/controllers/AdmsCommandController.php' => app_path('Http/Controllers/ZktecoAdms/AdmsCommandController.php'),
+            __DIR__.'/../stubs/controllers/AdmsEndpointController.php' => app_path('Http/Controllers/ZktecoAdms/AdmsEndpointController.php'),
+        ], 'zkteco-adms-controllers');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,

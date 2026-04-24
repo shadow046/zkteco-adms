@@ -22,6 +22,8 @@ The install command also publishes the optional Python helper scripts and bundle
 
 It also publishes optional route stubs into `routes/zkteco-adms`. When those files exist, the package will automatically load them instead of its internal default route files, so the host app can customize package routes without editing `vendor/`.
 
+For developers who prefer to inspect or fork the controller layer in the host app, the install command also publishes optional controller stubs into `app/Http/Controllers/ZktecoAdms`. These are not auto-wired by the package routes; they are there as editable host-side references.
+
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
 
 ## Config
@@ -46,6 +48,7 @@ Useful options:
 - install command
 - `/iclock` ADMS routes
 - publishable route stubs with host override support
+- publishable host controller stubs for optional customization
 - package-owned test frontend for dashboard, attendance, and daily logs
 - ADMS core ingest service
 - optional Python bridge service and packaged helper scripts
