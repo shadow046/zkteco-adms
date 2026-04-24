@@ -220,9 +220,7 @@ class AdmsCoreService
         $lines = $this->splitLines($content);
         $rows = [];
         $state = $this->getOrCreateDeviceState($serialNumber);
-        $nextSeqByDate = [];
-        $stateSeqDate = trim((string) ($state->sysdate ?? ''));
-        $stateSeqValue = (int) ($state->seqno ?? 0);
+        $affectedDates = [];
         $latestTxn = $this->parseTimestamp($state->lasttxndatetime ?? null);
         $latestAttlogDate = $this->parseTimestamp($state->attlogdate ?? null);
 
@@ -262,18 +260,10 @@ class AdmsCoreService
             $this->fillIfColumnExists($attendanceTable, $record, 'client_ip', $request->ip());
             $this->fillIfColumnExists($attendanceTable, $record, 'created_at', now());
             $this->fillIfColumnExists($attendanceTable, $record, 'updated_at', now());
-
-            if (! array_key_exists($txndate, $nextSeqByDate)) {
-                $nextSeqByDate[$txndate] = $txndate === $stateSeqDate
-                    ? max(0, $stateSeqValue + 1)
-                    : 0;
-            }
-
-            $assignedSeq = $nextSeqByDate[$txndate];
-            $nextSeqByDate[$txndate] = $assignedSeq + 1;
-            $this->fillIfColumnExists($attendanceTable, $record, 'seqno', $assignedSeq);
+            $this->fillIfColumnExists($attendanceTable, $record, 'seqno', 0);
 
             $rows[] = $record;
+            $affectedDates[$txndate] = true;
 
             if ($latestTxn === null || $timestamp->gt($latestTxn)) {
                 $latestTxn = $timestamp->copy();
@@ -319,9 +309,15 @@ class AdmsCoreService
             $inserted++;
         }
 
+        $lastSeqSnapshot = $this->resequencedAttendanceDates(
+            $attendanceTable,
+            $serialNumber,
+            array_keys($affectedDates)
+        );
+
         $latestSeqDate = $latestAttlogDate?->toDateString();
         $latestSeqValue = $latestSeqDate !== null
-            ? max(0, ($nextSeqByDate[$latestSeqDate] ?? 1) - 1)
+            ? (int) ($lastSeqSnapshot[$latestSeqDate] ?? 0)
             : (int) ($state->seqno ?? 0);
 
         $this->updateDeviceState($serialNumber, [
@@ -783,6 +779,68 @@ class AdmsCoreService
         }
 
         return $identity;
+    }
+
+    private function resequencedAttendanceDates(string $table, string $serialNumber, array $dates): array
+    {
+        $dates = array_values(array_filter(array_unique(array_map(
+            static fn ($date): string => trim((string) $date),
+            $dates
+        ))));
+
+        if ($dates === [] || ! $this->hasColumn($table, 'seqno')) {
+            return [];
+        }
+
+        $snapshots = [];
+
+        foreach ($dates as $date) {
+            $query = DB::table($table)
+                ->where('txndate', $date);
+
+            if ($this->hasColumn($table, 'serialno')) {
+                $query->where('serialno', $serialNumber);
+            }
+
+            $rows = $query
+                ->orderBy('txntime')
+                ->orderBy('empno');
+
+            if ($this->hasColumn($table, 'punch')) {
+                $rows->orderBy('punch');
+            }
+
+            if ($this->hasColumn($table, 'raw_line')) {
+                $rows->orderBy('raw_line');
+            }
+
+            $rows = $rows->get();
+
+            foreach ($rows as $index => $row) {
+                $rowQuery = DB::table($table)
+                    ->where('empno', (string) $row->empno)
+                    ->where('txndate', (string) $row->txndate)
+                    ->where('txntime', (string) $row->txntime);
+
+                if ($this->hasColumn($table, 'serialno')) {
+                    $rowQuery->where('serialno', (string) ($row->serialno ?? ''));
+                }
+
+                if ($this->hasColumn($table, 'raw_line')) {
+                    $rowQuery->where('raw_line', (string) ($row->raw_line ?? ''));
+                }
+
+                if ($this->hasColumn($table, 'stamp')) {
+                    $rowQuery->where('stamp', $row->stamp ?? null);
+                }
+
+                $rowQuery->update(['seqno' => $index]);
+            }
+
+            $snapshots[$date] = $rows->isEmpty() ? 0 : ($rows->count() - 1);
+        }
+
+        return $snapshots;
     }
 
     private function hasColumn(string $table, string $column): bool
