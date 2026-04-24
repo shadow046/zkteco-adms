@@ -57,6 +57,14 @@ class ZktecoAdmsServiceProvider extends ServiceProvider
             __DIR__.'/../stubs/services/ZkPythonBridgeService.php' => app_path('Services/ZktecoAdms/ZkPythonBridgeService.php'),
         ], 'zkteco-adms-services');
 
+        $this->publishes([
+            __DIR__.'/../README.md' => base_path('docs/zkteco-adms/README.md'),
+            __DIR__.'/../QUICKSTART.md' => base_path('docs/zkteco-adms/QUICKSTART.md'),
+            __DIR__.'/../PUBLISHING.md' => base_path('docs/zkteco-adms/PUBLISHING.md'),
+            __DIR__.'/../OVERRIDES.md' => base_path('docs/zkteco-adms/OVERRIDES.md'),
+            __DIR__.'/../CHANGELOG.md' => base_path('docs/zkteco-adms/CHANGELOG.md'),
+        ], 'zkteco-adms-docs');
+
         if ($this->app->runningInConsole()) {
             $this->commands([
                 InstallCommand::class,

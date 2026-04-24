@@ -26,6 +26,10 @@ For developers who prefer to inspect or fork the controller layer in the host ap
 
 The install command also publishes optional service stubs into `app/Services/ZktecoAdms` so the host app can inspect or fork the package service layer without editing `vendor/`.
 
+The package Markdown docs are also published into `docs/zkteco-adms` so the host app can read the package notes locally without digging through `vendor/`.
+
+Start with [QUICKSTART.md](QUICKSTART.md) if you want the shortest working setup.
+
 See [OVERRIDES.md](OVERRIDES.md) for the recommended override strategy and the difference between package defaults and host-side published copies.
 
 Make sure your Laravel `storage` path is writable, especially if you will receive `ATTPHOTO` uploads from the device.
