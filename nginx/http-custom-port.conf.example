@@ -1,6 +1,6 @@
 server {
-    listen __ADMS_PORT__;
-    listen [::]:__ADMS_PORT__;
+    listen __ADMS_PORT__ default_server;
+    listen [::]:__ADMS_PORT__ default_server;
 
     server_name __SERVER_NAME__;
     root __PROJECT_PUBLIC__;

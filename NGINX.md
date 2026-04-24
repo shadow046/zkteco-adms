@@ -60,6 +60,8 @@ Examples:
 - `__PHP_FPM_SOCK__` -> `/run/php/php8.3-fpm.sock`
 - `__ADMS_PORT__` -> `8081`
 
+The shipped examples use `default_server` on purpose because some devices are more reliable when the ADMS listener is the nginx default listener for that HTTP port.
+
 ## Recommended pattern
 
 If your public app is mainly HTTPS:
